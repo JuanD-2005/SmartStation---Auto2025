@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#2C2C2C] via-[#3B2F2F] to-[#594120] font-sans">
+
+    <!-- Contenedor -->
+    <div class="bg-white/10 backdrop-blur-lg shadow-xl rounded-2xl p-8 w-full max-w-md border border-white/20">
+        
+        <!-- Título -->
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-white tracking-wide">🚨 Estación Inteligente</h1>
+            <p class="text-gray-300 mt-1 text-sm">Accede a tu panel de seguridad</p>
+        </div>
+
+        <!-- Formulario -->
+        <form class="flex flex-col space-y-4" action="#" method="POST" onsubmit="return false;">
+            
+            <div>
+                <label class="text-gray-200 text-sm">Correo Electrónico</label>
+                <input id="emailInput" 
+                       class="mt-1 p-3 w-full rounded-lg bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500" 
+                       type="email" 
+                       placeholder="ejemplo@correo.com">
+            </div>
+
+            <div>
+                <label class="text-gray-200 text-sm">Contraseña</label>
+                <input id="passwordInput" 
+                       class="mt-1 p-3 w-full rounded-lg bg-white/20 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-yellow-500" 
+                       type="password" 
+                       placeholder="••••••••">
+            </div>
+
+            <!-- Botón login -->
+            <button class="bg-yellow-600 hover:bg-yellow-700 transition-all text-white font-semibold rounded-lg py-3 shadow-lg" 
+                    type="button" 
+                    onclick="loginUser()">
+                Iniciar Sesión
+            </button>
+
+            <div class="flex items-center justify-center space-x-2 text-gray-300 text-sm">
+                <span class="h-px bg-gray-500 w-1/4"></span>
+                <span>O continúa con</span>
+                <span class="h-px bg-gray-500 w-1/4"></span>
+            </div>
+
+            <!-- Botón Google -->
+            <button class="flex items-center justify-center gap-2 bg-white hover:bg-gray-100 transition-all text-gray-800 rounded-lg py-2 shadow-md"
+                    onclick="loginWithGoogle()" 
+                    type="button">
+                <img src="gmail.png" alt="Gmail" class="w-5 h-5">
+                Google
+            </button>
+
+            <p class="text-center text-gray-300 text-sm">
+                ¿No tienes una cuenta?
+                <a href="/register.html" class="text-yellow-400 hover:underline">Regístrate aquí</a>
+            </p>
+        </form>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import {
+            getAuth,
+            signInWithEmailAndPassword,
+            signInWithPopup,
+            GoogleAuthProvider, 
+            onAuthStateChanged
+        } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8H_NiawBVq3u1KgXZ0dqnwifzCPqgPgY",
+            authDomain: "automatizacion-2025-1.firebaseapp.com",
+            databaseURL: "https://automatizacion-2025-1-default-rtdb.firebaseio.com",
+            projectId: "automatizacion-2025-1",
+            storageBucket: "automatizacion-2025-1.firebasestorage.app",
+            messagingSenderId: "1084824806433",
+            appId: "1:1084824806433:web:651b6cd9bec6b49bf0ef60"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                window.location.href = "index.html";
+            }
+        });
+
+        window.loginWithGoogle = function () {
+            const provider = new GoogleAuthProvider();
+            signInWithPopup(auth, provider)
+                .then(() => {
+                    window.location.href = "index.html";
+                })
+                .catch((error) => {
+                    console.error("Error al iniciar sesión:", error);
+                    alert("Error al iniciar sesión con Google");
+                });
+        };
+
+        window.loginUser = function () {
+            const email = document.getElementById("emailInput").value;
+            const password = document.getElementById("passwordInput").value;
+
+            if (!email || !password) {
+                alert("Completa todos los campos.");
+                return;
+            }
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    window.location.href = "index.html";
+                })
+                .catch((error) => {
+                    if (error.code === "auth/invalid-credential") {
+                        alert("Este correo fue registrado con Google. Usa el botón de Google.");
+                    } else if (error.code === "auth/wrong-password") {
+                        alert("Contraseña incorrecta.");
+                    } else if (error.code === "auth/user-not-found") {
+                        alert("Usuario no registrado. Ve a register.html.");
+                    } else {
+                        alert("Error al iniciar sesión: " + error.message);
+                    }
+                });
+        };
+    </script>
+</body>
+</html>

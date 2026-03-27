@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Estación Inteligente - Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+
+<body class="bg-gradient-to-br from-[#2C2C2C] via-[#3B2F2F] to-[#594120] text-white font-sans min-h-screen p-5">
+
+    <div class="flex gap-5 w-full">
+        
+        <!-- Panel izquierdo (Historial de Alertas) -->
+        <aside class="hidden lg:block bg-white/10 backdrop-blur-lg shadow-xl border border-white/20 
+                       w-1/4 flex-shrink-0 rounded-2xl overflow-y-auto p-4">
+            <h2 class="text-yellow-400 text-xl font-bold mb-3 border-b border-white/20 pb-2">
+                Historial de Alertas
+            </h2>
+            <div id="historial-alertas"></div>
+        </aside>
+
+        <!-- Contenido derecho -->
+        <main class="flex flex-col flex-1">
+
+            <!-- Encabezado -->
+            <header class="flex items-center justify-between bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl rounded-2xl p-5">
+                <div class="flex items-center gap-10">
+                    <h1 class="text-2xl font-bold tracking-wide">🚨 ESTACIÓN INTELIGENTE</h1>
+                </div>
+
+                <!-- Botones ojo + salir -->
+                <div class="flex items-center gap-3">
+                    <!-- Botón ojo -->
+                    <button id="btnCandado" class="bg-white/10 hover:bg-white/20 rounded-lg p-2 transition">
+                        <!-- Ojo abierto -->
+                        <svg id="iconOpen" xmlns="http://www.w3.org/2000/svg" 
+                            width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                            stroke-linejoin="round" class="lucide lucide-eye-icon lucide-eye w-6 h-6">
+                            <path d="M2.062 12.348a1 1 0 0 1 0-.696 
+                                     10.75 10.75 0 0 1 19.876 0 
+                                     1 1 0 0 1 0 .696 
+                                     10.75 10.75 0 0 1-19.876 0"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+
+                        <!-- Ojo cerrado -->
+                        <svg id="iconClosed" xmlns="http://www.w3.org/2000/svg" 
+                            width="24" height="24" viewBox="0 0 24 24" fill="none" 
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" 
+                            stroke-linejoin="round" class="lucide lucide-eye-closed-icon lucide-eye-closed w-6 h-6 hidden">
+                            <path d="m15 18-.722-3.25"/>
+                            <path d="M2 8a10.645 10.645 0 0 0 20 0"/>
+                            <path d="m20 15-1.726-2.05"/>
+                            <path d="m4 15 1.726-2.05"/>
+                            <path d="m9 18 .722-3.25"/>
+                        </svg>
+                    </button>
+
+                    <!-- Botón salir -->
+                    <a href="#" onclick="logout()" class="bg-red-600 hover:bg-red-700 transition-all text-white px-4 py-2 rounded-lg shadow-lg">Salir</a>
+                </div>
+            </header>
+
+            <!-- Dashboards -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+                <!-- Puerta -->
+                <div class="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl p-5 flex flex-col items-center">
+                    <h2 class="font-semibold text-lg text-yellow-400 mb-2">Estado de la Puerta</h2>
+                    <div id="estadoVisitante" class="bg-black/50 text-white rounded-lg w-[80%] h-40 flex items-center justify-center text-lg">
+                        Cargando...
+                    </div>
+                </div>
+
+                <!-- Movimiento -->
+                <div class="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl p-5 flex flex-col items-center">
+                    <h2 class="font-semibold text-lg text-yellow-400 mb-2">Detección de Movimiento</h2>
+                    <div id="estadoMovimiento" class="bg-black/50 text-white rounded-lg w-[80%] h-40 flex items-center justify-center text-lg">
+                        Cargando...
+                    </div>
+                </div>
+
+                <!-- Luz -->
+                <div class="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl p-5 flex flex-col items-center md:col-span-2">
+                    <h2 class="font-semibold text-lg text-yellow-400 mb-2">Luz del Ambiente</h2>
+                    <div id="estadoLuz" class="bg-black/50 text-white rounded-lg w-[45%] h-28 flex items-center justify-center text-lg">
+                        Cargando...
+                    </div>
+                </div>
+            </section>
+
+            <!-- Diagnóstico -->
+            <section class="bg-white/10 backdrop-blur-lg border border-white/20 shadow-lg rounded-2xl mt-5 p-5 flex flex-col items-center text-center">
+                <h2 class="text-xl font-bold text-red-400 mb-2">ANOMALÍAS DETECTADAS</h2>
+                <div id="diagnostico" class="text-gray-200 font-medium text-lg"></div>
+            </section>
+
+            <!-- Créditos -->
+            <footer class="mt-5 text-sm text-gray-400 text-center">
+                Juan Paredes, José Bravo, Ángel Vivas | UNET  
+                Automatización de Procesos 2025 - Apertura del Salón Japonés
+            </footer>
+
+        </main>
+    </div>
+
+    <!-- Firebase SDKs y lógica de la aplicación -->
+    <script type="module">
+        // Importar módulos desde Firebase CDN
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+        import { getDatabase, ref, onValue, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyB8H_NiawBVq3u1KgXZ0dqnwifzCPqgPgY",
+            authDomain: "automatizacion-2025-1.firebaseapp.com",
+            databaseURL: "https://automatizacion-2025-1-default-rtdb.firebaseio.com",
+            projectId: "automatizacion-2025-1",
+            storageBucket: "automatizacion-2025-1.firebasestorage.app",
+            messagingSenderId: "1084824806433",
+            appId: "1:1084824806433:web:651b6cd9bec6b49bf0ef60"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+
+        let currentUser = null;
+
+        // Verificar autenticación
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = "login.html";
+            } else {
+                currentUser = user;
+                mostrarHistorialAlertas();
+            }
+        });
+
+        // Función de logout
+        window.logout = function () {
+            signOut(auth).then(() => {
+                window.location.href = "login.html";
+            });
+        };
+
+        let datosSensores = {
+            movimiento: null,
+            visitante: null,
+            estadoLuz: null
+        };
+
+        let evaluacionActiva = true;
+
+        const btnCandado = document.getElementById('btnCandado');
+        const iconOpen = document.getElementById('iconOpen');
+        const iconClosed = document.getElementById('iconClosed');
+
+        btnCandado.addEventListener('click', () => {
+            iconOpen.classList.toggle('hidden');
+            iconClosed.classList.toggle('hidden');
+
+            evaluacionActiva = !evaluacionActiva;
+            console.log("Evaluación activa:", evaluacionActiva);
+        });
+
+        function intentarEvaluar() {
+            if (!evaluacionActiva) return;
+
+            const { movimiento, visitante, estadoLuz } = datosSensores;
+            if (!movimiento || !visitante || !estadoLuz) return;
+
+            let alerta = "";
+            if (movimiento === "Movimiento detectado" && visitante === "Visitante presente" && estadoLuz === "Oscuro") {
+                alerta = "⚠️ Intrusión nocturna";
+            } else if (movimiento === "Movimiento detectado" && visitante === "Visitante presente" && estadoLuz === "Luz") {
+                alerta = "⚠️ Acceso no autorizado en horario diurno";
+            } else if (movimiento === "Sin movimiento" && visitante === "Visitante presente") {
+                alerta = "⚠️ Movimiento sospechoso cerca de puerta";
+            } else if (movimiento === "Movimiento detectado" && visitante === "Sin visitante") {
+                alerta = "⚠️ Intruso con las puertas cerradas";
+            } else if (movimiento === "Sin movimiento" && estadoLuz === "Luz") {
+                alerta = "⚠️ Luces encendidas innecesariamente";
+            } else if (movimiento === "Movimiento detectado" && visitante === "Fuera de rango") {
+                alerta = "⚠️ Sensor ultrasónico bloqueado";
+            }
+
+            if (alerta && currentUser) {
+                registrarAlerta(alerta, currentUser.email);
+                document.getElementById("diagnostico").textContent = `${alerta}`;
+            } else {
+                document.getElementById("diagnostico").textContent = "No se detectaron anomalías";
+            }
+        }
+
+        // Suscripción a cambios en los sensores
+        const movimientoRef = ref(db, "sensor/movimiento");
+        onValue(movimientoRef, (snapshot) => {
+            const valor = snapshot.val();
+            document.getElementById("estadoMovimiento").textContent = valor || "Sin datos";
+            datosSensores.movimiento = valor;
+            intentarEvaluar();
+        });
+
+        const visitanteRef = ref(db, "sensor/visitante");
+        onValue(visitanteRef, (snapshot) => {
+            const valor = snapshot.val();
+            document.getElementById("estadoVisitante").textContent = valor || "Sin datos";
+            datosSensores.visitante = valor;
+            intentarEvaluar();
+        });
+
+        const estadoLuzRef = ref(db, "sensor/estadoLuz");
+        onValue(estadoLuzRef, (snapshot) => {
+            const valor = snapshot.val();
+            document.getElementById("estadoLuz").textContent = valor || "Sin datos";
+            datosSensores.estadoLuz = valor;
+            intentarEvaluar();
+        });
+
+        function registrarAlerta(motivo, usuario) {
+            const alertaRef = ref(db, "alertas");
+            const nuevaAlerta = {
+                usuario: usuario,
+                motivo: motivo,
+                fecha: new Date().toLocaleString()
+            };
+
+            push(alertaRef, nuevaAlerta)
+                .then(() => {
+                    console.log("Alerta registrada:", nuevaAlerta);
+                    enviarCorreoAlerta(usuario, motivo);
+                })
+                .catch((error) => console.error("Error al registrar alerta:", error));
+        }
+
+        function mostrarHistorialAlertas() {
+            const alertaRef = ref(db, "alertas");
+            const historialDiv = document.getElementById("historial-alertas");
+
+            onChildAdded(alertaRef, (snapshot) => {
+                const alerta = snapshot.val();
+                const alertaHTML = `
+                <div class="p-4 mb-3 bg-white/5 rounded-xl border border-white/10">
+                    <div class="font-bold text-yellow-400">${alerta.motivo}</div>
+                    <div class="text-sm text-gray-300">Usuario: ${alerta.usuario}</div>
+                    <div class="text-xs text-gray-400 mt-1">${alerta.fecha}</div>
+                </div>
+                `;
+                historialDiv.innerHTML = alertaHTML + historialDiv.innerHTML;
+            });
+        }
+
+        // Configuración de EmailJS
+        emailjs.init("bY7RfY37pQ7LrHcnD");
+
+        function enviarCorreoAlerta(usuarioEmail, motivoAlerta) {
+            const templateParams = {
+                to_email: usuarioEmail,
+                alerta_motivo: motivoAlerta,
+                alerta_fecha: new Date().toLocaleString()
+            };
+
+            emailjs.send("service_yi73mit", "template_4q32x5t", templateParams)
+                .then(() => {
+                    console.log("✅ Correo enviado al usuario:", usuarioEmail);
+                })
+                .catch((error) => {
+                    console.error("❌ Error al enviar correo:", error);
+                });
+        }
+    </script>
+</body>
+</html>
