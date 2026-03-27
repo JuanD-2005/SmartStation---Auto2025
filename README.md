@@ -1,101 +1,105 @@
-# Estacion Inteligente - Sistema de Seguridad Automatizado
+# Estacion Inteligente | Smart Home Security Monitoring
 
+![Status](https://img.shields.io/badge/Status-Portfolio%20Project-success?style=for-the-badge)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?style=for-the-badge&logo=javascript&logoColor=000)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-CDN-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white)
-![Firebase](https://img.shields.io/badge/Firebase-Hosting%20%7C%20Auth%20%7C%20Realtime%20DB-FFCA28?style=for-the-badge&logo=firebase&logoColor=000)
-![ESP8266](https://img.shields.io/badge/ESP8266-NodeMCU-000000?style=for-the-badge&logo=espressif&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth%20%7C%20Realtime%20DB%20%7C%20Hosting-FFCA28?style=for-the-badge&logo=firebase&logoColor=000)
+![IoT](https://img.shields.io/badge/IoT-ESP8266%20%2B%20Sensors-0A66C2?style=for-the-badge)
 
-Proyecto de monitoreo y respuesta a eventos para hogar, desarrollado para la materia Automatizacion de Procesos (UNET).
+End-to-end IoT + Web Security Solution that combines physical sensors, real-time cloud sync, authentication, and event-driven alerts.
 
-La plataforma combina un nodo ESP8266 con sensores fisicos y un panel web en Firebase para:
+Designed as an academic project with production-like architecture decisions and portfolio-ready engineering practices.
 
-- Monitorear condiciones del entorno en tiempo real.
-- Evaluar riesgo segun reglas de combinacion de sensores.
-- Registrar historial de alertas.
-- Notificar al usuario por correo electronico.
+## Why this project matters
 
-## Tabla de contenido
+Most security demos stop at sensor reading. This system goes further:
 
-1. [Caracteristicas principales](#caracteristicas-principales)
-2. [Arquitectura general](#arquitectura-general)
-3. [Hardware utilizado](#hardware-utilizado)
-4. [Stack tecnologico](#stack-tecnologico)
-5. [Logica de diagnostico](#logica-de-diagnostico)
-6. [Estructura del proyecto](#estructura-del-proyecto)
-7. [Requisitos previos](#requisitos-previos)
-8. [Instalacion y ejecucion local](#instalacion-y-ejecucion-local)
-9. [Despliegue en Firebase](#despliegue-en-firebase)
-10. [Modelo de datos (Realtime Database)](#modelo-de-datos-realtime-database)
-11. [Seguridad y buenas practicas](#seguridad-y-buenas-practicas)
-12. [Roadmap sugerido](#roadmap-sugerido)
-13. [Creditos](#creditos)
+- It translates raw sensor signals into actionable threat diagnosis.
+- It connects hardware events to a cloud-backed web application in real time.
+- It adds identity, history, and notification layers to close the monitoring loop.
 
-## Caracteristicas principales
+This demonstrates practical skills in full-stack integration, not just frontend screens.
 
-- Monitoreo en tiempo real de sensores de movimiento, presencia en puerta y luz ambiente.
-- Panel web con diagnostico de anomalias y visualizacion del estado actual.
-- Historial de alertas persistido en Firebase Realtime Database.
-- Alertas por correo mediante EmailJS cuando se detecta una condicion de riesgo.
-- Sistema de autenticacion con Firebase Auth:
-	- Registro con correo y contrasena.
-	- Inicio de sesion con correo y contrasena.
-	- Inicio de sesion con Google.
-- Control de evaluacion (activar/desactivar analisis) desde el panel principal.
+## Recruiter Snapshot
 
-## Arquitectura general
+- Domain: IoT, Smart Home, Real-Time Monitoring
+- Scope: hardware integration + full web panel + authentication + cloud persistence + email alerting
+- Core value: anomaly detection and alert traceability for home safety scenarios
+- Delivery style: fast MVP with scalable Firebase foundation
+
+## Live Feature Highlights
+
+- Real-time dashboard showing:
+  - Door/visitor status
+  - Motion detection status
+  - Ambient light status
+- Rule-based anomaly engine for multi-sensor correlation.
+- Alert history timeline persisted in Firebase Realtime Database.
+- User authentication with Firebase Auth:
+  - Email and password
+  - Google sign-in
+- Notification workflow via EmailJS when risky conditions appear.
+- Arm/Disarm-style analysis toggle from the dashboard UI.
+
+## Technical Impact
+
+This portfolio project showcases:
+
+- Event-driven thinking: reacts to sensor changes using real-time listeners.
+- Data modeling: separates live telemetry and historical incidents.
+- Security awareness: authenticated access and clear hardening roadmap.
+- Product mindset: user flow includes register, login, monitoring, alerts, logout.
+- Frontend UX: modern visual dashboard using Tailwind utility styling.
+
+## System Architecture
 
 ```text
-Sensores + ESP8266
-				|
-				v
+Sensors (PIR, LDR, Ultrasonic) + ESP8266
+                |
+                v
 Firebase Realtime Database (sensor/*)
-				|
-				v
-Panel Web (index.html)
-	- lee estados en tiempo real
-	- ejecuta reglas de deteccion
-	- guarda alertas en /alertas
-	- envia email con EmailJS
-				|
-				v
+                |
+                v
+Web Dashboard (index.html)
+  - subscribes to live data
+  - computes anomaly diagnosis
+  - stores alert records in /alertas
+  - triggers email notifications (EmailJS)
+                |
+                v
 Firebase Authentication
-	- login/register
-	- proteccion de acceso al panel
+  - protected panel access
+  - email/password and Google login
 ```
 
-## Hardware utilizado
+## Anomaly Detection Rules
 
-- ESP8266MOD (NodeMCU) con conectividad WiFi.
-- Sensor PIR (movimiento).
-- Sensor de luz (LDR/fotorresistencia).
-- Sensor ultrasonico HC-SR04 (presencia/visitante).
+The app evaluates these sensor combinations in real time:
 
-## Stack tecnologico
+- Motion detected + Visitor present + Dark -> Night intrusion
+- Motion detected + Visitor present + Light -> Unauthorized daytime access
+- No motion + Visitor present -> Suspicious door-area presence
+- Motion detected + No visitor -> Potential internal movement with closed access
+- No motion + Light -> Unnecessary lights on
+- Motion detected + Out of range -> Ultrasonic sensor blocked
 
-- Frontend: HTML5 + JavaScript (ES Modules).
-- Estilos: Tailwind CSS via CDN.
-- Backend/BaaS: Firebase
-	- Authentication
-	- Realtime Database
-	- Hosting
-	- Cloud Functions (estructura preparada en `functions/`)
-- Notificaciones: EmailJS (envio de correos).
+Fallback diagnosis:
 
-## Logica de diagnostico
+- No matching pattern -> No anomalies detected
 
-La evaluacion actual reacciona a estas combinaciones:
+## Tech Stack
 
-- Movimiento detectado + Visitante presente + Oscuro -> Intrusion nocturna.
-- Movimiento detectado + Visitante presente + Luz -> Acceso no autorizado en horario diurno.
-- Sin movimiento + Visitante presente -> Movimiento sospechoso cerca de puerta.
-- Movimiento detectado + Sin visitante -> Intruso con las puertas cerradas.
-- Sin movimiento + Luz -> Luces encendidas innecesariamente.
-- Movimiento detectado + Fuera de rango -> Sensor ultrasonico bloqueado.
+- Frontend: HTML5, JavaScript (ES modules), Tailwind CSS via CDN
+- Backend platform: Firebase
+  - Authentication
+  - Realtime Database
+  - Hosting
+  - Cloud Functions scaffold in functions/
+- Notifications: EmailJS
+- Hardware: ESP8266 NodeMCU + PIR + LDR + HC-SR04
 
-Si no se cumple ninguna combinacion, el panel reporta: "No se detectaron anomalias".
-
-## Estructura del proyecto
+## Repository Structure
 
 ```text
 .
@@ -106,132 +110,112 @@ Si no se cumple ninguna combinacion, el panel reporta: "No se detectaron anomali
 |-- style.css
 |-- gmail.png
 `-- functions/
-		|-- index.js
-		`-- package.json
+    |-- index.js
+    `-- package.json
 ```
 
-## Requisitos previos
+## Quick Start
 
-- Node.js LTS (recomendado >= 20).
-- npm.
-- Firebase CLI.
-- Un proyecto Firebase con:
-	- Authentication habilitado (Email/Password y Google).
-	- Realtime Database en modo adecuado para desarrollo.
+### Prerequisites
 
-## Instalacion y ejecucion local
+- Node.js LTS
+- npm
+- Firebase CLI
+- Firebase project with Auth and Realtime Database enabled
 
-1. Clonar el repositorio.
+### Run locally
 
 ```bash
-git clone <URL_DE_TU_REPOSITORIO>
+git clone <YOUR_REPOSITORY_URL>
 cd "Estacion Inteligente"
-```
-
-2. Instalar Firebase CLI (si no lo tienes).
-
-```bash
 npm install -g firebase-tools
-```
 
-3. Instalar dependencias de Cloud Functions.
-
-```bash
 cd functions
 npm install
 cd ..
-```
 
-4. Iniciar sesion en Firebase.
-
-```bash
 firebase login
-```
-
-5. Vincular el proyecto Firebase (si aplica).
-
-```bash
 firebase use --add
-```
-
-6. Ejecutar localmente.
-
-```bash
 firebase serve
 ```
 
-Opcional con emuladores:
+Optional emulators:
 
 ```bash
 firebase emulators:start
 ```
 
-Por defecto, Hosting se sirve en `http://localhost:5000`.
+Default local URL: http://localhost:5000
 
-## Despliegue en Firebase
+## Deployment
 
-Despliegue completo:
+Deploy all:
 
 ```bash
 firebase deploy
 ```
 
-Solo Hosting:
+Deploy only hosting:
 
 ```bash
 firebase deploy --only hosting
 ```
 
-Solo Functions:
+Deploy only functions:
 
 ```bash
 cd functions
 npm run deploy
 ```
 
-## Modelo de datos (Realtime Database)
-
-Rutas usadas por el panel:
+## Data Model
 
 ```json
 {
-	"sensor": {
-		"movimiento": "Movimiento detectado | Sin movimiento",
-		"visitante": "Visitante presente | Sin visitante | Fuera de rango",
-		"estadoLuz": "Luz | Oscuro"
-	},
-	"alertas": {
-		"-Nx...": {
-			"usuario": "usuario@correo.com",
-			"motivo": "⚠️ Intrusion nocturna",
-			"fecha": "27/3/2026, 10:42:18"
-		}
-	}
+  "sensor": {
+    "movimiento": "Movimiento detectado | Sin movimiento",
+    "visitante": "Visitante presente | Sin visitante | Fuera de rango",
+    "estadoLuz": "Luz | Oscuro"
+  },
+  "alertas": {
+    "-Nx...": {
+      "usuario": "usuario@correo.com",
+      "motivo": "Night intrusion",
+      "fecha": "27/3/2026, 10:42:18"
+    }
+  }
 }
 ```
 
-## Seguridad y buenas practicas
+## Security Notes
 
-Este prototipo funciona para contexto academico, pero si lo publicas o lo evolucionas, considera lo siguiente:
+For public/open-source publication, apply these improvements:
 
-- No exponer claves o identificadores sensibles en frontend publico.
-- Mover configuraciones criticas a variables de entorno y/o backend.
-- Restringir reglas de Firebase Realtime Database y Auth por roles.
-- Evitar que cualquiera pueda escribir en `/alertas` sin autenticacion.
-- Aplicar cuotas, rate limiting y validacion de payloads.
-- Rotar llaves/credenciales si fueron expuestas en repositorios publicos.
+- Move sensitive provider keys and service identifiers out of public frontend code.
+- Use stricter Firebase Database Rules with auth-based write restrictions.
+- Add server-side validation for alert creation.
+- Rotate exposed tokens if repository history becomes public.
+- Introduce role-based access for admin/operator views.
 
-## Roadmap sugerido
+## Portfolio Positioning
 
-- Migrar logica de deteccion a Cloud Functions para centralizar reglas.
-- Incorporar notificaciones push (FCM) ademas de correo.
-- Agregar dashboard historico con filtros por usuario, fecha y severidad.
-- Definir niveles de riesgo (bajo, medio, alto) con priorizacion.
-- Integrar telemetria y pruebas automatizadas para escenarios criticos.
+If you are reviewing this as a recruiter or technical lead, this project demonstrates candidate readiness in:
 
-## Creditos
+- Full-stack integration (IoT + cloud + frontend)
+- Real-time systems and reactive interfaces
+- Product-oriented feature design under academic constraints
+- Cloud-native workflow with Firebase ecosystem
+- Fast prototyping with extensible architecture
 
-Desarrollado por:
+## Suggested Next Iteration
+
+- Move anomaly logic to Cloud Functions for centralized rules.
+- Add severity scoring and incident prioritization.
+- Add push notifications (FCM) alongside email.
+- Add charts and filtering in alert analytics.
+- Add unit/integration tests for rules engine reliability.
+
+## Team
 
 - Juan Paredes
 - Jose Bravo
@@ -239,4 +223,10 @@ Desarrollado por:
 
 Universidad Nacional Experimental del Tachira (UNET)  
 Automatizacion de Procesos 2025 - Apertura del Salon Japones
+
+---
+
+### Contact
+
+If you want to discuss this project, architecture choices, or collaboration opportunities, open an issue or reach out through your professional profile links.
 
